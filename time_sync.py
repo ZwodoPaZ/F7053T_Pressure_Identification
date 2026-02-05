@@ -31,15 +31,12 @@ def time_sync(left_foot_path, right_foot_path, acc_path, gyro_path):
 
     if right_max >= left_max:
         foot_spike_index = np.where(right_foot_mean[:500] == right_foot_mean[:500].max())[0][0]
-        print(foot_spike_index)
+    
     else:
         foot_spike_index = np.where(left_foot_mean[:500] == left_foot_mean[:500].max())[0][0]
     
-    print(acc_y[:500].max())
-    print(np.where(acc_y[:500] == acc_y[:500].max())[0][0])
     acc_spike_index = np.where(acc_y[:500] == acc_y[:500].max())[0][0]
     if foot_spike_index < acc_spike_index:
-        print('hej')
         acc_x = acc_x[acc_spike_index - foot_spike_index:]
         acc_y = acc_y[acc_spike_index - foot_spike_index:]
         acc_z = acc_z[acc_spike_index - foot_spike_index:]
@@ -69,3 +66,7 @@ def time_sync(left_foot_path, right_foot_path, acc_path, gyro_path):
     gyro = np.column_stack((gyro_x, gyro_y, gyro_z))
 
     return right_foot, left_foot, acc, gyro
+
+r, l, a, g = time_sync('DATA/Subject1/pocket/subject1_pocket_L.CSV', 'DATA/Subject1/pocket/subject1_pocket_L.CSV', 
+                       'DATA/Subject1/pocket_gyro/Accelerometer.csv', 'DATA/Subject1/pocket_gyro/Gyroscope.csv')
+
