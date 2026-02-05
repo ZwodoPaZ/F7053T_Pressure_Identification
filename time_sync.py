@@ -66,7 +66,3 @@ def time_sync(left_foot_path, right_foot_path, acc_path, gyro_path):
     gyro = np.column_stack((gyro_x, gyro_y, gyro_z))
 
     return right_foot, left_foot, acc, gyro
-
-r, l, a, g = time_sync('DATA/Subject1/pocket/subject1_pocket_L.CSV', 'DATA/Subject1/pocket/subject1_pocket_L.CSV', 
-                       'DATA/Subject1/pocket_gyro/Accelerometer.csv', 'DATA/Subject1/pocket_gyro/Gyroscope.csv')
-
