@@ -68,7 +68,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         print(f"Epoch [{epoch+1}/{epochs}] "
               f"Train Loss: {sum(train_loss):.4f}"
               f"| Val Loss: {sum(val_loss):.4f}", end="\r")
-    return train_losses, 
+    return train_losses
 
 def reinit_transformer_weights(model, d_model):
     for module in model.modules():
