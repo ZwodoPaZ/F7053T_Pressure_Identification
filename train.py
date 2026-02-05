@@ -41,8 +41,8 @@ def validate(model, loader, criterion, device, best_loss=float('inf'), save_path
 
     with torch.no_grad():
         for data, label in iter(loader):
-            data = data.permute([0, 2, 1]).to(torch.float32).to(device)
-            label = label.permute([0, 2, 1]).to(torch.float32).to(device)
+            data = data.to(torch.float32).to(device)
+            label = label.to(torch.float32).to(device)
             outputs = model(data)
             loss = criterion(outputs, label)
             running_loss.append(loss.item())
