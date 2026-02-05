@@ -4,12 +4,12 @@ import math
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
-from F7053T_Pressure_Identification.dataset import dataset
-from F7053T_Pressure_Identification.model import pressureInsolesTransformer
+from dataset import dataset
+from model import pressureInsolesTransformer
 
 
-path_list = ['data/subject1.pth', 'data/subject2.pth', 'data/subject3.pth', 'data/subject4.pth', 'data/subject5.pth',
-                        'data/subject6.pth', 'data/subject7.pth', 'data/subject8.pth', 'data/subject9.pth', 'data/subject10.pth']
+path_list = ['../data/subject1.pth', '../data/subject2.pth', '../data/subject3.pth', '../data/subject4.pth', '../data/subject5.pth',
+                        '../data/subject6.pth', '../data/subject7.pth', '../data/subject8.pth', '../data/subject9.pth', '../data/subject10.pth']
 data = dataset(path_list)
 
 # parameters:
@@ -24,10 +24,13 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     running_loss = []
 
     for data, label in iter(loader):
-        data = data.permute([0, 2, 1]).to(torch.float32).to(device)
-        label = label.permute([0, 2, 1]).to(torch.float32).to(device)
+        data = data.permute((0,2,1)).to(torch.float32).to(device)
+        label = label.to(device).to(torch.long)
+        print(label.shape)
+        print(label.dtype)
         optimizer.zero_grad()
         outputs = model(data)
+        print(outputs.shape)
         loss = criterion(outputs, label)
         loss.backward()
         optimizer.step()
@@ -42,8 +45,8 @@ def validate(model, loader, criterion, device, best_loss=float('inf'), save_path
 
     with torch.no_grad():
         for data, label in iter(loader):
-            data = data.to(torch.float32).to(device)
-            label = label.to(torch.float32).to(device)
+            data = data.permute((0,2,1)).to(torch.float32).to(device)
+            label = label.to(device).to(torch.long)
             outputs = model(data)
             loss = criterion(outputs, label)
             running_loss.append(loss.item())
@@ -106,14 +109,12 @@ if __name__ == "__main__":
     nhead=16,
     dim_feedforward=1024,
     dropout=0.3,
-    seq_len=339
+    seq_len=287
     )
     reinit_transformer_weights(model, 1024)
-    model_path = "./best_autoencoder.pth"
     model.to(device)   
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    criterion = nn.MSELoss()
-    optimizer = optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.2)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(model.parameters(), lr=5e-4, weight_decay=0.2)
     scheduler1 = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.01, total_iters=20)
     scheduler2 = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
     scheduler = optim.lr_scheduler.SequentialLR(optimizer, [scheduler1, scheduler2], [21])

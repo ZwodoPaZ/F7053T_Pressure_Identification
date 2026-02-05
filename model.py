@@ -1,6 +1,7 @@
 from torch import nn
 import torch
 
+
 class pressureInsolesTransformer(nn.Module):
     def __init__(
         self,
@@ -31,13 +32,12 @@ class pressureInsolesTransformer(nn.Module):
             batch_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_encoder_layers)
-
         self.output_proj = nn.Linear(latent_dim, num_classes)
 
     def forward(self, x):
     
         x_emb = self.input_proj(x) + self.pos_embedding
         latent_seq = self.encoder(x_emb)
-        out = self.output_proj(latent_seq)
-        
+        out = self.output_proj(latent_seq).max(dim=1)[0]
+
         return out
