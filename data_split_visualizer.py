@@ -139,21 +139,23 @@ def pad_consistent_sensor_number(data, value=-1):
                     '213', '214', '221', 
                     '222', '223', '224', '225']
     i = 0
-    while len(list(data)) <= len(desired_profile):
-        if list(data)[i] != desired_profile[i]:
+    while len(list(data)) < len(desired_profile):
+        if i >= len(list(data)):
+            data.insert(i, desired_profile[i], value)
+        elif (list(data)[i] != desired_profile[i]):
             data.insert(i, desired_profile[i], value)
         else:
             i += 1
     return data.to_numpy()
 
-def process_subject(left_foot, right_foot):
+def process_subject(left_foot, right_foot, cuts):
     left_foot = left_foot.drop(columns=['Sensor nummer', 'Sync'])
-    left_foot = pad_consistent_sensor_number(left_foot)[500:-500]
+    left_foot = pad_consistent_sensor_number(left_foot)[cuts[0]:cuts[1]]
     left_foot_mean = np.mean(left_foot, axis=1)
     left_foot_average = np.mean(left_foot)
 
     right_foot = right_foot.drop(columns=['Sensor nummer', 'Sync'])
-    right_foot = pad_consistent_sensor_number(right_foot)[500:-500]
+    right_foot = pad_consistent_sensor_number(right_foot)[cuts[0]:cuts[1]]
     right_foot_mean = np.mean(right_foot, axis=1)
     right_foot_average = np.mean(right_foot)
 
@@ -293,15 +295,15 @@ def process_subject(left_foot, right_foot):
     
     return out_tensor
 
-left_feet = [pd.read_csv('../Subject5/hand/King_Megan_2026.02.02_11.49.47_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=","),
-             pd.read_csv('../Subject5/pocket/King_Megan_2026.02.02_11.46.01_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")]
+left_feet = [pd.read_csv('../Subject10/hand/subject10_hand_2026.02.05_13.41.01_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=","),
+             pd.read_csv('../Subject10/pocket/subject10_pocket_2026.02.05_13.37.43_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")]
 
-right_feet = [pd.read_csv('../Subject5/hand/King_Megan_2026.02.02_11.49.47_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=","),
-              pd.read_csv('../Subject5/pocket/King_Megan_2026.02.02_11.46.01_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")]
+right_feet = [pd.read_csv('../Subject10/hand/subject10_hand_2026.02.05_13.41.01_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=","),
+              pd.read_csv('../Subject10/pocket/subject10_pocket_2026.02.05_13.37.43_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")]
 
 samples = []
-
-for left, right in zip(left_feet, right_feet):
-    samples.append(process_subject(left, right))
+cuts = [(500, -500), (500, -500)]
+for left, right, cut in zip(left_feet, right_feet, cuts):
+    samples.append(process_subject(left, right, cut))
 samples = torch.concatenate(pad_last_dim(samples), dim=0)
-torch.save(samples, '../data/subject5.pth')
+torch.save(samples, '../data/subject10.pth')
