@@ -8,7 +8,8 @@ from F7053T_Pressure_Identification.dataset import dataset
 from F7053T_Pressure_Identification.model import pressureInsolesTransformer
 
 
-path_list = []
+path_list = ['data/subject1.pth', 'data/subject2.pth', 'data/subject3.pth', 'data/subject4.pth', 'data/subject5.pth',
+                        'data/subject6.pth', 'data/subject7.pth', 'data/subject8.pth', 'data/subject9.pth', 'data/subject10.pth']
 data = dataset(path_list)
 
 # parameters:
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     epochs = 200
     
     model = pressureInsolesTransformer(
-    input_dim=200,
+    input_dim=302,
     latent_dim=32,
     num_classes=10,
     num_encoder_layers=6,
