@@ -21,7 +21,6 @@ class dataset(Dataset):
             self.labels += labels
         for i in range(len(self.samples)):
             self.samples[i] = F.pad(self.samples[i], (0, padding_size - self.samples[i].shape[1]), value=-1)
-        print(self.samples[0].shape, self.samples[-1].shape)
     def __len__(self):
         return len(self.samples)
 

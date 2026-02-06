@@ -26,11 +26,8 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     for data, label in iter(loader):
         data = data.permute((0,2,1)).to(torch.float32).to(device)
         label = label.to(device).to(torch.long)
-        print(label.shape)
-        print(label.dtype)
         optimizer.zero_grad()
         outputs = model(data)
-        print(outputs.shape)
         loss = criterion(outputs, label)
         loss.backward()
         optimizer.step()
@@ -65,15 +62,28 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     for epoch in range(epochs):
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
         train_losses.append(train_loss)
-        val_loss, best_loss = validate(model, val_loader, criterion, device, best_loss, save_path="best_autoencoder.pth")
+        val_loss, best_loss = validate(model, val_loader, criterion, device, best_loss, save_path="best_model.pth")
         val_losses.append(val_loss)
         scheduler.step()
 
         print(f"Epoch [{epoch+1}/{epochs}] "
               f"Train Loss: {sum(train_loss):.4f}"
               f"| Val Loss: {sum(val_loss):.4f}", end="\r")
-    return train_losses
+    return train_losses, val_losses
 
+def test_model(model, test_loader):
+    correct = 0
+    total = 0
+    for data, labels in iter(test_loader):
+        data = data.permute((0,2,1)).to(torch.float32).to(device)
+        labels = labels.to(device).to(torch.long)
+        outputs = model(data)
+        _, predicted = torch.max(outputs, dim=1)
+        correct += (predicted == labels).sum().item()
+        total += labels.size(0)
+    return correct / total
+        
+        
 def reinit_transformer_weights(model, d_model):
     for module in model.modules():
         if isinstance(module, nn.MultiheadAttention):
@@ -99,7 +109,7 @@ def reinit_transformer_weights(model, d_model):
 
 if __name__ == "__main__":
     device = torch.device("mps")
-    epochs = 200
+    epochs = 50
     
     model = pressureInsolesTransformer(
     input_dim=302,
@@ -119,4 +129,10 @@ if __name__ == "__main__":
     scheduler2 = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
     scheduler = optim.lr_scheduler.SequentialLR(optimizer, [scheduler1, scheduler2], [21])
     train_losses, val_losses = train_model(model, train_loader, validation_loader, criterion, optimizer, scheduler, epochs, device)
+    
+    model_path = "./best_model.pth"
+    model.to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    accuracy = test_model(model, test_loader)
+    print(accuracy)
 
