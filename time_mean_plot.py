@@ -10,12 +10,12 @@ def comparison_time_average(left_foot, right_foot, cuts):
     left_foot = left_foot.drop(columns=['Sensor nummer', 'Sync'])
     left_foot_org = pad_consistent_sensor_number(left_foot.copy())[cuts[0]:cuts[1]]
     left_foot = interpolate(left_foot, len(left_foot.columns))[cuts[0]:cuts[1]]
-    left_foot_mean = np.mean(left_foot_org, axis=2)
+    left_foot_mean = np.mean(left_foot_org, axis=0)
 
     right_foot = right_foot.drop(columns=['Sensor nummer', 'Sync'])
     right_foot_org = pad_consistent_sensor_number(right_foot.copy())[cuts[0]:cuts[1]]
     right_foot = interpolate(right_foot, len(right_foot.columns))[cuts[0]:cuts[1]]
-    right_foot_mean = np.mean(right_foot_org, axis=2)
+    right_foot_mean = np.mean(right_foot_org, axis=0)
     return left_foot_mean, right_foot_mean
 
 
@@ -31,21 +31,51 @@ cuts = [[(500, -500), (500, -500)],
         [(500, -500), (500, -500)],
         [(500, -500), (500, -500)]]
 
-for id in tqdm(range(1,11)):
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    left_feet = [pd.read_csv('../data_better/Subject' + str(id) + '/hand/subject'+ str(id) +'_hand_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=","),
-                pd.read_csv('../data_better/Subject' + str(id) + '/pocket/subject'+ str(id) +'_pocket_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")]
+cuts_pocket = [
+        [(500, -500), (500, -500)],
+        [(500, -500), (1100, -500)],
+        [(500, -500), (500, -500)],
+        [(1500, -500), (500, -500)],
+        [(500, -500), (500, -500)]
+        ]
+cuts_hand = [
+        [(500, -500), (500, -500)],
+        [(500, -500), (500, -500)],
+        [(500, -1500), (500, -500)],
+        [(500, -500), (500, -500)],
+        [(500, -500), (500, -500)]
+        ]
 
-    right_feet = [pd.read_csv('../data_better/Subject' + str(id) + '/hand/subject'+ str(id) +'_hand_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=","),
-                 pd.read_csv('../data_better/Subject' + str(id) + '/pocket/subject'+ str(id) +'_pocket_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")]    
+fig, axes = plt.subplots(2, 2, figsize=(14, 6))
+for id in tqdm(range(1,11)):
+    left_feet_pocket = [
+        pd.read_csv('../data_better/Subject' + str(id) + '/pocket/subject'+ str(id) +'_pocket_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")
+        ]
     
-    for left, right, cut in zip(left_feet, right_feet, cuts[id-1]):
+    left_feet_hand = [
+        pd.read_csv('../data_better/Subject' + str(id) + '/hand/subject'+ str(id) +'_hand_L.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")
+        ]
+    
+    right_feet_pocket = [
+        pd.read_csv('../data_better/Subject' + str(id) + '/pocket/subject'+ str(id) +'_pocket_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")
+        ]  
+
+    right_feet_hand = [
+        pd.read_csv('../data_better/Subject' + str(id) + '/hand/subject'+ str(id) +'_hand_R.CSV', delimiter=';', dtype=float, skiprows=[1,2,3], decimal=",")
+        ]  
+    
+    for left, right, cut in zip(left_feet_pocket, right_feet_pocket, cuts_pocket[id-1]):
         left_foot_mean, right_foot_mean = comparison_time_average(left, right, cut)
         axes[0].plot(left_foot_mean, alpha = 0.6, label = f'Subject {id} l')
         axes[1].plot(right_foot_mean, alpha = 0.6, label = f'Subject {id} r')
 
-axes[0].set_title("Left Foot - Comparison")
-axes[1].set_title("Right Foot - Comparison")
+    for left, right, cut in zip(left_feet_hand, right_feet_hand, cuts_hand[id-1]):
+        left_foot_mean, right_foot_mean = comparison_time_average(left, right, cut)
+        axes[2].plot(left_foot_mean, alpha = 0.6, label = f'Subject {id} l')
+        axes[3].plot(right_foot_mean, alpha = 0.6, label = f'Subject {id} r')
+
+axes[0].set_title("Left Foot - Pocket")
+axes[1].set_title("Right Foot - Pocket")
 
 axes[0].set_xlabel("Sensor ID")
 axes[0].set_ylabel("Pressure")
@@ -54,6 +84,17 @@ axes[1].set_ylabel("Pressure")
 
 axes[0].legend()
 axes[1].legend()
+
+axes[2].set_title("Left Foot - Hand")
+axes[3].set_title("Right Foot - Hand")
+
+axes[2].set_xlabel("Sensor ID")
+axes[2].set_ylabel("Pressure")
+axes[3].set_xlabel("Sensor ID")
+axes[3].set_ylabel("Pressure")
+
+axes[2].legend()
+axes[3].legend()
 
 plt.tight_layout()
 plt.show()
